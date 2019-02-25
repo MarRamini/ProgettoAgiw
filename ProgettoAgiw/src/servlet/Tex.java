@@ -2,6 +2,7 @@ package servlet;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -112,8 +113,14 @@ public class Tex extends HttpServlet {
 		return result;
 	}
 	
-	private List<String> filter(List<String> extracted){
-		return extracted;
+	private List<String> filter(List<String> textSet){
+		List<String> result = new ArrayList<String>();
+		for(String text : textSet) {
+			if(this.hasVariability(text, textSet)) {
+				result.add(text);
+			}
+		}
+		return result;
 	}
 	
 	private List<String> expand(List<String> texts, int size){
@@ -122,7 +129,7 @@ public class Tex extends HttpServlet {
 		if(shortest != null && !shortest.isEmpty() && shortest.length() >= size){
 			Map<String, List<Integer>> shared = findPattern(texts, shortest, size);
 			if(!shared.isEmpty()) {
-				result = createExpansion(texts, shared);
+				result.addAll(createExpansion(texts, shared));
 			}
 		}
 			
@@ -190,7 +197,30 @@ public class Tex extends HttpServlet {
 		
 		for(String text : texts) {
 			List<Integer> matches = shared.get(text);
-			
+			int matchIndex = matches.get(0);
+			String prefix = text.substring(0, matchIndex);
+			if(!prefix.isEmpty()) {
+				set1.add(prefix);
+			}
+			int lastMatchIndex = matches.get(matches.size()-1);
+			String separators = text.substring(matchIndex, lastMatchIndex);
+			if(!separators.isEmpty()) {
+				set2.add(separators);
+			}
+			String suffix = text.substring(lastMatchIndex, text.length()-1);
+			if(!suffix.isEmpty()) {
+				set3.add(suffix);
+			}		
+		}
+		
+		if(!set1.isEmpty()) {
+			result.addAll(set1);
+		}
+		if(!set2.isEmpty()) {
+			result.addAll(set2);
+		}
+		if(!set3.isEmpty()) {
+			result.addAll(set3);
 		}
 		return null;
 	}
@@ -219,5 +249,15 @@ public class Tex extends HttpServlet {
 			}
 		}
 		return prefixes;
+	}
+	
+	private boolean hasVariability(String text, List<String> textSet) {
+		boolean variability = true;
+		Iterator<String> it = textSet.iterator();
+		while(it.hasNext()) {
+			String current = it.next();
+			variability = variability || !text.equals(current);	//devo rimuovere quelli il cui contenuto è lo stesso
+		}
+		return variability;
 	}
 }
