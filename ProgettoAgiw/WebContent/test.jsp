@@ -76,7 +76,7 @@
     	 };
     	
     	 xhr.open("GET", "http://localhost:8080/ProgettoAgiw/Tex", true); // true for asynchronous 
-  		xhr.send();
+  		 xhr.send();
 	}
 </script>
 <div id="response"></div>

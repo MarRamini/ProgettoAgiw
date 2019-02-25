@@ -2,9 +2,11 @@ package servlet;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -44,6 +46,13 @@ public class Tex extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		List<String> result = this.tex(textSet, 9999, 1);
 		
+		String pattern = "ababaca";
+		int[] prefixes = this.prefixFunction(pattern);
+		
+		for(int elem : prefixes) {
+			System.out.print(elem + " ");
+		}
+		
 		String responseText = ""; //importare json e scrivere risposta
 		
 		response.getWriter().println(responseText);
@@ -56,6 +65,13 @@ public class Tex extends HttpServlet {
 		String textPage = request.getParameter("textPage");
 		
 		this.textSet.add(textPage);
+		System.out.println("doPost");
+		String pattern = "ababaca";
+		int[] prefixes = this.prefixFunction(pattern);
+		
+		for(int elem : prefixes) {
+			System.out.print(elem + " ");
+		}
 	}
 	
 	/**
@@ -104,11 +120,13 @@ public class Tex extends HttpServlet {
 		List<String> result = new ArrayList<String>();
 		String shortest = findShortestText(texts);
 		if(shortest != null && !shortest.isEmpty() && shortest.length() >= size){
-			List<String> shared = findPattern(texts, shortest, size);
+			Map<String, List<Integer>> shared = findPattern(texts, shortest, size);
+			if(!shared.isEmpty()) {
+				result = createExpansion(texts, shared);
+			}
 		}
-		
-		
-		return new ArrayList<String>();
+			
+		return result;
 	}
 	
 	private String findShortestText(List<String> list){
@@ -123,25 +141,83 @@ public class Tex extends HttpServlet {
 		return result;
 	}
 	
-	private List<String> findPattern(List<String> list, String shortest, int size){
+	private Map<String, List<Integer>> findPattern(List<String> list, String shortest, int size){
 		boolean found = false;
-		List<String> result = new ArrayList<String>();
+		Map<String,List<Integer>> result = new HashMap<String, List<Integer>>();
 		for(int i = 0 ; i <= (shortest.length() - size) ; i++){
 			if(!found){				
 				found = true;
 				Iterator<String> it = list.iterator();
+				List<Integer> matches = new ArrayList<Integer>();
 				while(it.hasNext() && found){
 					String current = it.next();
-					List<String> matches = findMatches(current, shortest, i, size);
+					matches.add(findMatches(current, shortest, i, size));
 					found = !matches.isEmpty();
-					result.addAll(matches);
+					result.put(current, matches);
 				}				
 			}
 		}
 		return result;
 	}
 	
-	private List<String> findMatches(String text, String base, int counter, int size){
-		return new ArrayList<String>();
+	private int findMatches(String text, String pattern, int counter, int size){
+		int textLength = text.length();
+		int patternLength = pattern.length();
+		int[] prefixes = this.prefixFunction(pattern);
+		int i = 0; //???
+		int j = 0; //???
+		while (i < textLength) {
+			if (pattern.charAt(j) == text.charAt(i)) {
+				if (j == patternLength - 1) {
+					return i - patternLength + 1; //abbinamento
+				}
+				i++;
+				j++;
+			}
+			else if (j > 0)
+				j = prefixes[j - 1];
+			else i++;
+		}
+		return - 1; //nessun abbinamento		 
+	}
+	
+	private List<String> createExpansion(List<String> texts, Map<String, List<Integer>> shared){
+		List<String> result = new ArrayList<String>();
+		
+		List<String> set1 = new ArrayList<String>();
+		List<String> set2 = new ArrayList<String>();
+		List<String> set3 = new ArrayList<String>();
+		
+		for(String text : texts) {
+			List<Integer> matches = shared.get(text);
+			
+		}
+		return null;
+	}
+	
+	private int[] prefixFunction(String pattern) {
+		int length = pattern.length();
+		int [] prefixes = new int[length];
+		prefixes[0] = 0;
+		int prefixCounter = 0;
+		int counter = 1;
+		
+		while (counter < length) {
+			if (pattern.charAt(prefixCounter) == pattern.charAt(counter)) {
+				prefixes[counter] = prefixCounter + 1;
+				prefixCounter++;
+				counter++; 
+			}
+			else {
+				if (prefixCounter > 0) {
+					prefixCounter = prefixes[prefixCounter - 1];
+				}
+				else { 
+					prefixes[counter] = 0;
+					counter++; 
+				}
+			}
+		}
+		return prefixes;
 	}
 }
