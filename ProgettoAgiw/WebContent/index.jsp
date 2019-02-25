@@ -11,7 +11,7 @@
 <button type="button" onclick="doTex()"> click me to run TEX </button>
 </div>
 <script type="text/javascript">
-	var siteList = ["https:/linkedgeodata.org"];
+	var siteList = ["http://localhost:8080/ProgettoAgiw/t1.html","http://localhost:8080/ProgettoAgiw/t2.html","http://localhost:8080/ProgettoAgiw/t3.html"];
 	
 
 	siteList.forEach(function (url){		

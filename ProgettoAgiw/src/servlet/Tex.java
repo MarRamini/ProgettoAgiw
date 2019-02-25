@@ -45,16 +45,23 @@ public class Tex extends HttpServlet {
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		List<String> result = this.tex(textSet, 9999, 1);
-		
-		String pattern = "ababaca";
-		int[] prefixes = this.prefixFunction(pattern);
-		
-		for(int elem : prefixes) {
-			System.out.print(elem + " ");
+		for(String website : this.textSet){
+			System.out.println(website + "\n-----------------\n");
 		}
 		
+		//List<String> result = this.tex(this.textSet, 10, 1);
+		List<String> test = new ArrayList<String>();
+		test.add("aba");
+		test.add("abc");
+		test.add("abdcab");
+		List<String> result = this.expand(test, 3);
+		
+		
 		String responseText = ""; //importare json e scrivere risposta
+		
+		for(String elem : result) {
+			responseText.concat("\n-----------------\n");
+		}		
 		
 		response.getWriter().println(responseText);
 	}
@@ -66,13 +73,6 @@ public class Tex extends HttpServlet {
 		String textPage = request.getParameter("textPage");
 		
 		this.textSet.add(textPage);
-		System.out.println("doPost");
-		String pattern = "ababaca";
-		int[] prefixes = this.prefixFunction(pattern);
-		
-		for(int elem : prefixes) {
-			System.out.print(elem + " ");
-		}
 	}
 	
 	/**
@@ -99,7 +99,7 @@ public class Tex extends HttpServlet {
 			List<String> buffer = new ArrayList<String>();
 			while(!result.isEmpty()){
 				List<String> ts = new ArrayList<String>();
-				ts.add(result.remove(0)); //dequeue
+				ts.addAll(result); //dequeue
 				List<String> expansion = expand(ts, size);
 				if(expansion.isEmpty()){
 					buffer.addAll(ts);
@@ -158,7 +158,7 @@ public class Tex extends HttpServlet {
 				List<Integer> matches = new ArrayList<Integer>();
 				while(it.hasNext() && found){
 					String current = it.next();
-					matches.add(findMatches(current, shortest, i, size));
+					matches = findMatches(current, shortest, i, size);
 					found = !matches.isEmpty();
 					result.put(current, matches);
 				}				
@@ -167,25 +167,31 @@ public class Tex extends HttpServlet {
 		return result;
 	}
 	
-	private int findMatches(String text, String pattern, int counter, int size){
+	private List<Integer> findMatches(String text, String pattern, int counter, int size){
+		List<Integer> matches = new ArrayList<Integer>();
 		int textLength = text.length();
 		int patternLength = pattern.length();
 		int[] prefixes = this.prefixFunction(pattern);
 		int i = 0; //???
 		int j = 0; //???
 		while (i < textLength) {
+			//cerco un match con il primo carattere del pattern
+			if (pattern.charAt(j) == text.charAt(i)) {
+				continue;
+			}
+			/*
 			if (pattern.charAt(j) == text.charAt(i)) {
 				if (j == patternLength - 1) {
-					return i - patternLength + 1; //abbinamento
+					matches.add(i - patternLength + 1); //abbinamento
 				}
 				i++;
 				j++;
 			}
 			else if (j > 0)
 				j = prefixes[j - 1];
-			else i++;
+			else i++;*/
 		}
-		return - 1; //nessun abbinamento		 
+		return matches;
 	}
 	
 	private List<String> createExpansion(List<String> texts, Map<String, List<Integer>> shared){
