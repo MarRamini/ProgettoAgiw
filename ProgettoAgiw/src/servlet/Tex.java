@@ -2,10 +2,8 @@ package servlet;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -14,7 +12,11 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import model.Text;
 
 /**
  * Servlet implementation class Tex
@@ -23,13 +25,13 @@ import javax.servlet.http.HttpSession;
 public class Tex extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	
-	private List<String> textSet = new ArrayList<String>(); 
+	private List<Text> textSet = new ArrayList<Text>(); 
 	
-	public List<String> getTextSet() {
+	public List<Text> getTextSet() {
 		return textSet;
 	}
 
-	public void setTextSet(List<String> textSet) {
+	public void setTextSet(List<Text> textSet) {
 		this.textSet = textSet;
 	}
 
@@ -45,8 +47,8 @@ public class Tex extends HttpServlet {
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		for(String website : this.textSet){
-			System.out.println(website + "\n-----------------\n");
+		for(Text website : this.textSet){
+			System.out.println(website.getTokens().toString() + "\n-----------------\n");
 		}
 		
 		//List<String> result = this.tex(this.textSet, 10, 1);
@@ -72,7 +74,22 @@ public class Tex extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		String textPage = request.getParameter("textPage");
 		
-		this.textSet.add(textPage);
+		try {
+			JSONObject json = new JSONObject(textPage);
+			JSONArray tokens = json.getJSONArray("tokens");
+			List<String> unparsedDocument = new ArrayList<String>();
+			for(int i = 0 ; i<tokens.length() ; i++) {
+				String token = tokens.getString(i);
+				unparsedDocument.add(token);
+			}			
+			Text text = new Text();
+			text.setTokens(unparsedDocument);
+			this.textSet.add(text);
+			response.getWriter().write("document succesfully parsed");
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.getWriter().write("error while parsing document: " + e.getMessage());
+		}			
 	}
 	
 	/**
@@ -82,9 +99,9 @@ public class Tex extends HttpServlet {
 	 * @param min: numero minimo di match. (In genere 1, almeno il nodo html)
 	 * @return
 	 */
-	private List<String> tex(List<String> textSet, int max, int min){
-		List<String> resultText;
-		List<String> extracted;
+	private List<Text> tex(List<Text> textSet, int max, int min){
+		List<Text> resultText;
+		List<Text> extracted;
 		
 		extracted = extract(textSet, max, min);
 		resultText = filter(extracted);		
@@ -92,25 +109,31 @@ public class Tex extends HttpServlet {
 		return resultText;
 	}
 	
-	private List<String> extract(List<String> textSet, int max, int min){
-		List<String> result = textSet;
+	private List<Text> extract(List<Text> textSet, int max, int min){
+		List<Text> result = textSet;
 		
 		for(int size = max ; size >= min ; size--){
-			List<String> buffer = new ArrayList<String>();
+			List<Text> buffer = new ArrayList<Text>();
 			while(!result.isEmpty()){
-				List<String> ts = new ArrayList<String>();
-				ts.addAll(result); //dequeue
-				List<String> expansion = expand(ts, size);
+				List<Text> ts = new ArrayList<Text>();
+				ts = dequeue(result, ts);		//dequeue di tutti i documenti
+				List<Text> expansion = expand(ts, size);
 				if(expansion.isEmpty()){
-					buffer.addAll(ts);
+					buffer.addAll(ts); //non ho espansione, ovvero ho espanso già il possibile per il dato size
 				}
 				else{
-					result.addAll(expansion);
+					result.addAll(expansion); //ho espansioni, enqueue di tutte le espansioni
 				}
 			}
 			result = buffer;
 		}
 		return result;
+	}
+	
+	private List<Text> dequeue(List<Text> queue, List<Text> buffer){
+		for(int i=0 ; i< queue.size() i++) {
+			buffer.add(queue.remove(i))
+		}
 	}
 	
 	private List<String> filter(List<String> textSet){
@@ -123,11 +146,11 @@ public class Tex extends HttpServlet {
 		return result;
 	}
 	
-	private List<String> expand(List<String> texts, int size){
-		List<String> result = new ArrayList<String>();
-		String shortest = findShortestText(texts);
+	private List<Text> expand(List<Text> texts, int size){
+		List<Text> result = new ArrayList<Text>();
+		Text shortest = findShortestText(texts); //trovo il documento più corto
 		if(shortest != null && !shortest.isEmpty() && shortest.length() >= size){
-			Map<String, List<Integer>> shared = findPattern(texts, shortest, size);
+			Map<Text, List<Integer>> shared = findPattern(texts, shortest, size);
 			if(!shared.isEmpty()) {
 				result.addAll(createExpansion(texts, shared));
 			}
@@ -136,28 +159,31 @@ public class Tex extends HttpServlet {
 		return result;
 	}
 	
-	private String findShortestText(List<String> list){
-		Iterator<String> it = list.iterator();
-		String result = "";
+	private Text findShortestText(List<Text> list){
+		Iterator<Text> it = list.iterator();
+		Text result = new Text();
 		while(it.hasNext()){
-			String current = it.next();
-			if(result.equals("") || result.length() > current.length()){
+			Text current = it.next();
+			if(result.isEmpty() || result.length() > current.length()){
 				result = current;
 			}
 		}
 		return result;
 	}
 	
-	private Map<String, List<Integer>> findPattern(List<String> list, String shortest, int size){
+	private Map<Text, List<Integer>> findPattern(List<Text> list, Text shortest, int size){
+		/*
+		 * cerco un pattern nei documenti, di dimensione size
+		 * */
 		boolean found = false;
-		Map<String,List<Integer>> result = new HashMap<String, List<Integer>>();
-		for(int i = 0 ; i <= (shortest.length() - size) ; i++){
+		Map<Text,List<Integer>> result = new HashMap<Text, List<Integer>>();
+		for(int i = 0 ; i <= (shortest.getSize() - size) ; i++){ 
 			if(!found){				
 				found = true;
-				Iterator<String> it = list.iterator();
+				Iterator<Text> it = list.iterator();
 				List<Integer> matches = new ArrayList<Integer>();
 				while(it.hasNext() && found){
-					String current = it.next();
+					Text current = it.next();
 					matches = findMatches(current, shortest, i, size);
 					found = !matches.isEmpty();
 					result.put(current, matches);
@@ -167,13 +193,37 @@ public class Tex extends HttpServlet {
 		return result;
 	}
 	
-	private List<Integer> findMatches(String text, String pattern, int counter, int size){
+	private List<Integer> findMatches(Text text, Text pattern, int position, int size){
+		/*int i = position;
+		int j = 0;
+		List<Integer> result = new ArrayList<Integer>();
+		
+		while(i < text.length()) {
+			if(j < dimension && text.charAt(i) == pattern.charAt(j)) {
+				if(j == dimension - 1) {
+					result.add(i - (pattern.length() - 1));
+				}
+				i++;
+				j++;
+			}
+			else if(j > 0) {
+				j = 0;
+			}
+			else {
+				i++;
+			}
+		}
+		return result;*/
+		
+		
+		
+		
 		List<Integer> matches = new ArrayList<Integer>();
 		int textLength = text.length();
 		int patternLength = pattern.length();
 		int[] prefixes = this.prefixFunction(pattern);
-		int i = 0; //???
-		int j = 0; //???
+		int i = position; //???
+		int j = position; //???
 		while (i < textLength) {
 			//cerco un match con il primo carattere del pattern
 			if (pattern.charAt(j) == text.charAt(i)) {

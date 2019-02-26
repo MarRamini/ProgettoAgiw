@@ -4,6 +4,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<script type="text/javascript" src="Tokenizator.js"></script>
 <title>Insert title here</title>
 </head>
 <body>
@@ -12,8 +13,7 @@
 </div>
 <script type="text/javascript">
 	var siteList = ["http://localhost:8080/ProgettoAgiw/t1.html","http://localhost:8080/ProgettoAgiw/t2.html","http://localhost:8080/ProgettoAgiw/t3.html"];
-	
-
+	var htmlDocuments = [];
 	siteList.forEach(function (url){		
 		var format="application/json";
 		var params={
@@ -34,12 +34,17 @@
 		 else {
 		  	var xmlHttp = new ActiveXObject("Microsoft.XMLHTTP");
 		 }
-		
+			
 		 xmlHttp.onreadystatechange = function() { 
+			
 		     if (xmlHttp.readyState == 4 && xmlHttp.status == 200){
-		    	
-		    	var response = this.responseText;	    	
-		    	siteList.push(response);
+		    	var documentsTokenized = [];
+		    	var response = this.responseText.trim();
+		    	var tokens = tokenize(response)
+		    	htmlDocuments.push(tokens);
+		    	var jsonTokens = {tokens}; 
+		    	var jsonTokens = JSON.stringify(jsonTokens);
+		    	console.log(jsonTokens)
 		    
 		    	var xhr = new XMLHttpRequest();
 		    	xhr.onreadystatechange = function() { 
@@ -50,13 +55,13 @@
 		    	    	div.style.backgroundColor = "green";
 		    	    	div.style.display = "inline-block";
 		    	    	document.getElementById("container").appendChild(div);
+		    	    	document.getElementById("response").innerHTML = this.responseText;
 		    	     }
 		    	 };
 		    	
 		    	 xhr.open("POST", "http://localhost:8080/ProgettoAgiw/Tex", true); // true for asynchronous 
 		    	 xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-		    	 console.log(response)
-		    	 xhr.send("textPage=" + encodeURIComponent(response));
+		    	 xhr.send("textPage=" + encodeURIComponent(jsonTokens));
 		     }
 		 };
 		 
