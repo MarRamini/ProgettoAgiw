@@ -17,6 +17,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import model.Text;
+import model.TextSet;
 
 /**
  * Servlet implementation class Tex
@@ -25,13 +26,13 @@ import model.Text;
 public class Tex extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	
-	private List<Text> textSet = new ArrayList<Text>(); 
+	private List<TextSet> textSet = new ArrayList<TextSet>(); 
 	
-	public List<Text> getTextSet() {
+	public List<TextSet> getTextSet() {
 		return textSet;
 	}
 
-	public void setTextSet(List<Text> textSet) {
+	public void setTextSet(List<TextSet> textSet) {
 		this.textSet = textSet;
 	}
 
@@ -41,28 +42,24 @@ public class Tex extends HttpServlet {
     public Tex() {
         super();
         // TODO Auto-generated constructor stub
+        this.textSet.add(new TextSet());
     }
 
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		for(Text website : this.textSet){
-			System.out.println(website.getTokens().toString() + "\n-----------------\n");
-		}
-		
-		//List<String> result = this.tex(this.textSet, 10, 1);
-		List<String> test = new ArrayList<String>();
-		test.add("aba");
-		test.add("abc");
-		test.add("abdcab");
-		List<String> result = this.expand(test, 3);
+				
+		List<TextSet> result = this.tex(this.textSet, 17, 1);
 		
 		
 		String responseText = ""; //importare json e scrivere risposta
 		
-		for(String elem : result) {
-			responseText.concat("\n-----------------\n");
+		for(TextSet elem : result) {
+			for(Text text : elem.getList()){
+				responseText.concat("\n-----------------\n");
+				responseText.concat(text.toString());
+			}
 		}		
 		
 		response.getWriter().println(responseText);
@@ -84,8 +81,8 @@ public class Tex extends HttpServlet {
 			}			
 			Text text = new Text();
 			text.setTokens(unparsedDocument);
-			this.textSet.add(text);
-			response.getWriter().write("document succesfully parsed");
+			this.textSet.get(0).getList().add(text);
+			response.getWriter().write("OK");
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.getWriter().write("error while parsing document: " + e.getMessage());
@@ -99,9 +96,9 @@ public class Tex extends HttpServlet {
 	 * @param min: numero minimo di match. (In genere 1, almeno il nodo html)
 	 * @return
 	 */
-	private List<Text> tex(List<Text> textSet, int max, int min){
-		List<Text> resultText;
-		List<Text> extracted;
+	private List<TextSet> tex(List<TextSet> textSet, int max, int min){
+		List<TextSet> resultText;
+		List<TextSet> extracted;
 		
 		extracted = extract(textSet, max, min);
 		resultText = filter(extracted);		
@@ -109,50 +106,43 @@ public class Tex extends HttpServlet {
 		return resultText;
 	}
 	
-	private List<Text> extract(List<Text> textSet, int max, int min){
-		List<Text> result = textSet;
+	private List<TextSet> extract(List<TextSet> textSet, int max, int min){
+		List<TextSet> result = textSet;
 		
 		for(int size = max ; size >= min ; size--){
-			List<Text> buffer = new ArrayList<Text>();
+			List<TextSet> buffer = new ArrayList<TextSet>();
 			while(!result.isEmpty()){
-				List<Text> ts = new ArrayList<Text>();
-				ts = dequeue(result, ts);		//dequeue di tutti i documenti
-				List<Text> expansion = expand(ts, size);
+				TextSet ts = (result.remove(0));		//dequeue del primo textset
+				List<TextSet> expansion = expand(ts, size);
 				if(expansion.isEmpty()){
-					buffer.addAll(ts); //non ho espansione, ovvero ho espanso già il possibile per il dato size
+					buffer.add(ts); //non ho espansione, ovvero ho espanso già il possibile per il dato size
 				}
 				else{
-					result.addAll(expansion); //ho espansioni, enqueue di tutte le espansioni
+					buffer.addAll(expansion);//result.addAll(expansion) //ho espansioni, enqueue di tutte le espansioni
 				}
 			}
 			result = buffer;
 		}
 		return result;
-	}
+	}	
 	
-	private List<Text> dequeue(List<Text> queue, List<Text> buffer){
-		for(int i=0 ; i< queue.size() i++) {
-			buffer.add(queue.remove(i))
-		}
-	}
-	
-	private List<String> filter(List<String> textSet){
-		List<String> result = new ArrayList<String>();
-		for(String text : textSet) {
-			if(this.hasVariability(text, textSet)) {
-				result.add(text);
+	private List<TextSet> filter(List<TextSet> textSet){
+		List<TextSet> result = new ArrayList<TextSet>();
+		for(TextSet set : textSet) {
+			if(this.hasVariability(set)) {
+				result.add(set);
 			}
 		}
 		return result;
 	}
 	
-	private List<Text> expand(List<Text> texts, int size){
-		List<Text> result = new ArrayList<Text>();
-		Text shortest = findShortestText(texts); //trovo il documento più corto
+	private List<TextSet> expand(TextSet texts, int size){
+		List<TextSet> result = new ArrayList<TextSet>();
+		Text shortest = findShortestText(texts.getList()); //trovo il documento più corto
 		if(shortest != null && !shortest.isEmpty() && shortest.length() >= size){
-			Map<Text, List<Integer>> shared = findPattern(texts, shortest, size);
+			Map<Text, List<Integer>> shared = findPattern(texts.getList(), shortest, size);
 			if(!shared.isEmpty()) {
-				result.addAll(createExpansion(texts, shared));
+				result = createExpansion(texts.getList(), shared, size);
 			}
 		}
 			
@@ -175,7 +165,23 @@ public class Tex extends HttpServlet {
 		/*
 		 * cerco un pattern nei documenti, di dimensione size
 		 * */
-		boolean found = false;
+		boolean found = true;
+		Map<Text, List<Integer>> result = new HashMap<Text, List<Integer>>();
+		Iterator<Text> it = list.iterator();
+		
+		while(it.hasNext() && found){
+			Text current = it.next();
+			List<Integer> matches =  findMatches(current, shortest, size);
+			found = !matches.isEmpty();
+			if(found){
+				result.put(current, matches);
+			}
+			else{
+				result.clear();
+			}
+		}	
+		
+		/*boolean found = false;
 		Map<Text,List<Integer>> result = new HashMap<Text, List<Integer>>();
 		for(int i = 0 ; i <= (shortest.getSize() - size) ; i++){ 
 			if(!found){				
@@ -184,136 +190,98 @@ public class Tex extends HttpServlet {
 				List<Integer> matches = new ArrayList<Integer>();
 				while(it.hasNext() && found){
 					Text current = it.next();
-					matches = findMatches(current, shortest, i, size);
+					matches = findMatches(current, shortest, size);
 					found = !matches.isEmpty();
 					result.put(current, matches);
 				}				
 			}
+		}*/
+		return result;
+	}
+	
+	private List<Integer> findMatches(Text text, Text pattern, int size){
+		List<Integer> matches = new ArrayList<Integer>();
+		int i = 0;
+		int j = 0;
+		
+		while(i < text.getSize()){
+			j = 0;
+			while(j < pattern.getSize() && i < text.getSize()){
+				if(j < size && text.getToken(i).equals(pattern.getToken(j))){
+					if(j == size - 1){
+						matches.add(i - (size - 1)); //indice del primo token di match
+					}
+					i++;
+					j++;
+				}
+				else if(j > 0){
+					j = 0;
+				}
+				else{
+					i++;
+				}
+			}
+		}
+		
+		/*while(i < text.getSize()){
+			if(j < size && text.getToken(i).equals(pattern.getToken(j))){
+				if(j == size - 1){
+					matches.add(i - (size - 1)); //indice del primo token di match
+				}
+				i++;
+				j++;
+			}
+			else if(j > 0){
+				j = 0;
+			}
+			else{
+				i++;
+			}
+		}	*/
+		
+		return matches;
+	}
+	
+	private List<TextSet> createExpansion(List<Text> texts, Map<Text, List<Integer>> shared, int size){
+		List<TextSet> result = new ArrayList<TextSet>();
+		
+		TextSet set = new TextSet(); //in assenza di match
+		TextSet set1 = new TextSet();
+		TextSet set2 = new TextSet();
+		TextSet set3 = new TextSet();
+		
+		for(Text text : texts) {
+			List<Integer> matches = shared.get(text);
+			if(matches != null && !matches.isEmpty()){
+				int matchIndex = matches.get(0); //prendo il primo match avvenuto
+				Text prefix = text.getSubSet(0, matchIndex);
+				if(prefix != null && !prefix.isEmpty()) {
+					set1.getList().add(prefix);
+				}
+				Text separators = text.getSubSet(matchIndex, matchIndex + size - 1);
+				if(separators != null && !separators.isEmpty()) {
+					set2.getList().add(separators);
+				}
+				Text suffix = text.getSubSet(matchIndex + size , text.getSize() - 1);
+				if(suffix != null && !suffix.isEmpty()) {
+					set3.getList().add(suffix);
+				}
+			}
+		}
+		
+		if(!set1.isEmpty()) {
+			result.add(set1);
+		}
+		if(!set2.isEmpty()) {
+			result.add(set2);
+		}
+		if(!set3.isEmpty()) {
+			result.add(set3);
 		}
 		return result;
 	}
 	
-	private List<Integer> findMatches(Text text, Text pattern, int position, int size){
-		/*int i = position;
-		int j = 0;
-		List<Integer> result = new ArrayList<Integer>();
-		
-		while(i < text.length()) {
-			if(j < dimension && text.charAt(i) == pattern.charAt(j)) {
-				if(j == dimension - 1) {
-					result.add(i - (pattern.length() - 1));
-				}
-				i++;
-				j++;
-			}
-			else if(j > 0) {
-				j = 0;
-			}
-			else {
-				i++;
-			}
-		}
-		return result;*/
-		
-		
-		
-		
-		List<Integer> matches = new ArrayList<Integer>();
-		int textLength = text.length();
-		int patternLength = pattern.length();
-		int[] prefixes = this.prefixFunction(pattern);
-		int i = position; //???
-		int j = position; //???
-		while (i < textLength) {
-			//cerco un match con il primo carattere del pattern
-			if (pattern.charAt(j) == text.charAt(i)) {
-				continue;
-			}
-			/*
-			if (pattern.charAt(j) == text.charAt(i)) {
-				if (j == patternLength - 1) {
-					matches.add(i - patternLength + 1); //abbinamento
-				}
-				i++;
-				j++;
-			}
-			else if (j > 0)
-				j = prefixes[j - 1];
-			else i++;*/
-		}
-		return matches;
-	}
-	
-	private List<String> createExpansion(List<String> texts, Map<String, List<Integer>> shared){
-		List<String> result = new ArrayList<String>();
-		
-		List<String> set1 = new ArrayList<String>();
-		List<String> set2 = new ArrayList<String>();
-		List<String> set3 = new ArrayList<String>();
-		
-		for(String text : texts) {
-			List<Integer> matches = shared.get(text);
-			int matchIndex = matches.get(0);
-			String prefix = text.substring(0, matchIndex);
-			if(!prefix.isEmpty()) {
-				set1.add(prefix);
-			}
-			int lastMatchIndex = matches.get(matches.size()-1);
-			String separators = text.substring(matchIndex, lastMatchIndex);
-			if(!separators.isEmpty()) {
-				set2.add(separators);
-			}
-			String suffix = text.substring(lastMatchIndex, text.length()-1);
-			if(!suffix.isEmpty()) {
-				set3.add(suffix);
-			}		
-		}
-		
-		if(!set1.isEmpty()) {
-			result.addAll(set1);
-		}
-		if(!set2.isEmpty()) {
-			result.addAll(set2);
-		}
-		if(!set3.isEmpty()) {
-			result.addAll(set3);
-		}
-		return null;
-	}
-	
-	private int[] prefixFunction(String pattern) {
-		int length = pattern.length();
-		int [] prefixes = new int[length];
-		prefixes[0] = 0;
-		int prefixCounter = 0;
-		int counter = 1;
-		
-		while (counter < length) {
-			if (pattern.charAt(prefixCounter) == pattern.charAt(counter)) {
-				prefixes[counter] = prefixCounter + 1;
-				prefixCounter++;
-				counter++; 
-			}
-			else {
-				if (prefixCounter > 0) {
-					prefixCounter = prefixes[prefixCounter - 1];
-				}
-				else { 
-					prefixes[counter] = 0;
-					counter++; 
-				}
-			}
-		}
-		return prefixes;
-	}
-	
-	private boolean hasVariability(String text, List<String> textSet) {
-		boolean variability = true;
-		Iterator<String> it = textSet.iterator();
-		while(it.hasNext()) {
-			String current = it.next();
-			variability = variability || !text.equals(current);	//devo rimuovere quelli il cui contenuto è lo stesso
-		}
-		return variability;
+	private boolean hasVariability(TextSet textSet) {
+		return textSet.hasVariability();
 	}
 }

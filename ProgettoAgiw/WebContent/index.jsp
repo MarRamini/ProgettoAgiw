@@ -12,7 +12,7 @@
 <button type="button" onclick="doTex()"> click me to run TEX </button>
 </div>
 <script type="text/javascript">
-	var siteList = ["http://localhost:8080/ProgettoAgiw/t1.html","http://localhost:8080/ProgettoAgiw/t2.html","http://localhost:8080/ProgettoAgiw/t3.html"];
+	var siteList = ["http://localhost:8080/ProgettoAgiw1/t1.html","http://localhost:8080/ProgettoAgiw1/t2.html","http://localhost:8080/ProgettoAgiw1/t3.html"];
 	var htmlDocuments = [];
 	siteList.forEach(function (url){		
 		var format="application/json";
@@ -42,8 +42,8 @@
 		    	var response = this.responseText.trim();
 		    	var tokens = tokenize(response)
 		    	htmlDocuments.push(tokens);
-		    	var jsonTokens = {tokens}; 
-		    	var jsonTokens = JSON.stringify(jsonTokens);
+		    	var jsonTokens = {tokens: tokens}; 
+		    	jsonTokens = JSON.stringify(jsonTokens);
 		    	console.log(jsonTokens)
 		    
 		    	var xhr = new XMLHttpRequest();
@@ -59,7 +59,7 @@
 		    	     }
 		    	 };
 		    	
-		    	 xhr.open("POST", "http://localhost:8080/ProgettoAgiw/Tex", true); // true for asynchronous 
+		    	 xhr.open("POST", "http://localhost:8080/ProgettoAgiw1/Tex", true); // true for asynchronous 
 		    	 xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 		    	 xhr.send("textPage=" + encodeURIComponent(jsonTokens));
 		     }
@@ -80,7 +80,7 @@
     	     }
     	 };
     	
-    	 xhr.open("GET", "http://localhost:8080/ProgettoAgiw/Tex", true); // true for asynchronous 
+    	 xhr.open("GET", "http://localhost:8080/ProgettoAgiw1/Tex", true); // true for asynchronous 
   		 xhr.send();
 	}
 </script>
