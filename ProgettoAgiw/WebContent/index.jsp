@@ -49,12 +49,6 @@
 		    	var xhr = new XMLHttpRequest();
 		    	xhr.onreadystatechange = function() { 
 		    	     if (xhr.readyState == 4 && xhr.status == 200){
-		    	    	var div = document.createElement("div");
-		    	    	div.style.height = "10px";
-		    	    	div.style.width = "10px";
-		    	    	div.style.backgroundColor = "green";
-		    	    	div.style.display = "inline-block";
-		    	    	document.getElementById("container").appendChild(div);
 		    	    	document.getElementById("response").innerHTML = this.responseText;
 		    	     }
 		    	 };

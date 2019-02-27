@@ -57,12 +57,11 @@ public class Tex extends HttpServlet {
 		
 		for(TextSet elem : result) {
 			for(Text text : elem.getList()){
-				responseText.concat("\n-----------------\n");
-				responseText.concat(text.toString());
+				responseText = responseText.concat(text.toString());
 			}
 		}		
 		
-		response.getWriter().println(responseText);
+		response.getWriter().write(responseText);
 	}
 
 	/**
@@ -82,7 +81,7 @@ public class Tex extends HttpServlet {
 			Text text = new Text();
 			text.setTokens(unparsedDocument);
 			this.textSet.get(0).getList().add(text);
-			response.getWriter().write("OK");
+			response.getWriter().write("documents succesfully uploaded");
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.getWriter().write("error while parsing document: " + e.getMessage());
@@ -118,7 +117,7 @@ public class Tex extends HttpServlet {
 					buffer.add(ts); //non ho espansione, ovvero ho espanso già il possibile per il dato size
 				}
 				else{
-					buffer.addAll(expansion);//result.addAll(expansion) //ho espansioni, enqueue di tutte le espansioni
+					buffer.addAll(expansion); //ho espansioni, enqueue di tutte le espansioni
 				}
 			}
 			result = buffer;
@@ -165,21 +164,27 @@ public class Tex extends HttpServlet {
 		/*
 		 * cerco un pattern nei documenti, di dimensione size
 		 * */
-		boolean found = true;
-		Map<Text, List<Integer>> result = new HashMap<Text, List<Integer>>();
-		Iterator<Text> it = list.iterator();
 		
-		while(it.hasNext() && found){
-			Text current = it.next();
-			List<Integer> matches =  findMatches(current, shortest, size);
-			found = !matches.isEmpty();
-			if(found){
-				result.put(current, matches);
+		Map<Text, List<Integer>> result = new HashMap<Text, List<Integer>>();
+		boolean found = false;
+		
+		for(int i = 0 ; i <= shortest.getSize() - size; i++){ //ciclo sulle posizioni di shortest
+			if(!found){
+				found = true;			
+				Iterator<Text> it = list.iterator();
+				while(it.hasNext() && found){ 
+					Text current = it.next();
+					List<Integer> matches =  findMatches(current, shortest, i, size);
+					found = !matches.isEmpty();
+					if(found){
+						result.put(current, matches);
+					}
+					else{
+						result.clear();
+					}
+				}
 			}
-			else{
-				result.clear();
-			}
-		}	
+		}
 		
 		/*boolean found = false;
 		Map<Text,List<Integer>> result = new HashMap<Text, List<Integer>>();
@@ -198,24 +203,24 @@ public class Tex extends HttpServlet {
 		}*/
 		return result;
 	}
-	
-	private List<Integer> findMatches(Text text, Text pattern, int size){
+	//<html><Head><title>Result</title></head><body>abbase..............
+	//<html><Head><title>Result</title></head><body>Result..............
+	private List<Integer> findMatches(Text text, Text pattern, int position, int size){
 		List<Integer> matches = new ArrayList<Integer>();
 		int i = 0;
-		int j = 0;
 		
 		while(i < text.getSize()){
-			j = 0;
+			int j = position;
 			while(j < pattern.getSize() && i < text.getSize()){
-				if(j < size && text.getToken(i).equals(pattern.getToken(j))){
-					if(j == size - 1){
+				if(j < size + position && text.getToken(i).equals(pattern.getToken(j))){
+					if(j == size + position - 1){
 						matches.add(i - (size - 1)); //indice del primo token di match
 					}
 					i++;
 					j++;
 				}
-				else if(j > 0){
-					j = 0;
+				else if(j > position){
+					j = position;
 				}
 				else{
 					i++;
@@ -245,14 +250,13 @@ public class Tex extends HttpServlet {
 	private List<TextSet> createExpansion(List<Text> texts, Map<Text, List<Integer>> shared, int size){
 		List<TextSet> result = new ArrayList<TextSet>();
 		
-		TextSet set = new TextSet(); //in assenza di match
 		TextSet set1 = new TextSet();
 		TextSet set2 = new TextSet();
 		TextSet set3 = new TextSet();
 		
 		for(Text text : texts) {
 			List<Integer> matches = shared.get(text);
-			if(matches != null && !matches.isEmpty()){
+			if(matches != null && !matches.isEmpty()){			
 				int matchIndex = matches.get(0); //prendo il primo match avvenuto
 				Text prefix = text.getSubSet(0, matchIndex);
 				if(prefix != null && !prefix.isEmpty()) {
@@ -266,7 +270,7 @@ public class Tex extends HttpServlet {
 				if(suffix != null && !suffix.isEmpty()) {
 					set3.getList().add(suffix);
 				}
-			}
+			}			
 		}
 		
 		if(!set1.isEmpty()) {
