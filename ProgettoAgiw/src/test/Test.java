@@ -20,9 +20,6 @@ public class Test {
 		
 		List<Token> test = Tokenizator.Instance().Tokenize(text);
 		
-		for(Token token : test) {
-			System.out.print(token.toString());
-		}
 	}
 	
 	public static List<Integer> findMatch(String text, String pattern,  int dimension) {
