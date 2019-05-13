@@ -1,25 +1,40 @@
 package test;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import model.Token;
+import model.Text;
+import model.TextSet;
+import tex.Tex;
+import utils.HtmlReader;
+import utils.HtmlWriter;
 import utils.Tokenizator;
 
 public class Test {
 	
 	public static void main(String[] args) {
 		
-		String text = "<html><head></head><body><div id='testino' class='test' onclick='alert('no alert message')'>"
-				+ "Questo è un testo di test"
-				+ "</div></body></html>";
-		String pattern = "<html><head></head><body></body></html>";
-		/*for(int j = pattern.length() ; j>1 ; j--) {
-			List<Integer> matches = findMatch(text, pattern, j);
-			System.out.println("trying for size: " + j + "---->" + matches.toString() + ", pattern size: " + j);
-		}*/
+		Text t1 = new Text();
+		t1.setTokens(Tokenizator.instance().Tokenize("<html><head><title>Results</title></head><body>Catch Me<br /><b>Lisa Gardner</b><br /> $14.94<br /></body></html>"));
+		Text t2 = new Text();
+		t2.setTokens(Tokenizator.instance().Tokenize("<html><head><title>Results</title></head><body>Raylan<br /><b>Elmore Leonard</b><br /> $19.54<br />Wonderstruck<br /><b>Brian Selznick</b><br />$19.54<br /></body></html>"));
+		Text t3 = new Text();
+		t3.setTokens(Tokenizator.instance().Tokenize("<html><head><title>Results</title></head><body>Divergent<br /><b>Veronica Roth</b><br /> $9.99<br />West<br /><b>R.J. Singer</b><br /> $3.49<br /></body></html>"));
+		TextSet ts = new TextSet();
+		ts.getList().add(t1);
+		ts.getList().add(t2);
+		ts.getList().add(t3);
 		
-		List<Token> test = Tokenizator.Instance().Tokenize(text);
+		List<TextSet> input = new ArrayList<TextSet>();
+		input.add(ts);
 		
+		List<TextSet> result = Tex.instance().tex(input, 13, 1);
+		
+		for(TextSet s : result){
+			for(Text t : s.getList()){
+				System.out.println(t.toString());
+			}
+		}
 	}
 	
 	public static List<Integer> findMatch(String text, String pattern,  int dimension) {

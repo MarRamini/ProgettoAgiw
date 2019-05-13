@@ -11,7 +11,7 @@ public class HtmlReader {
 	
 	private HtmlReader(){}
 	
-	public static HtmlReader Instance(){
+	public static HtmlReader instance(){
 		return instance;
 	}
 	

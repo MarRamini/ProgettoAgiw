@@ -36,4 +36,17 @@ public class TextSet {
 		}
 		return variability;
 	}
+	
+	public int getMaxMatchNumber(){
+		//the number of tokens of the text with the minimum number of tokens
+		int min = 0;
+		
+		for(Text text : this.getList()){
+			int current = text.getSize();
+			if(min == 0 || min > current){
+				min = current;
+			}			
+		}
+		return min;
+	}
 }
