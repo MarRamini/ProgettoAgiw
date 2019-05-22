@@ -45,24 +45,22 @@ public class Main {
 					TextSet set = new TextSet();
 					System.out.println("Tokenizing files in directory: " + site.getName());
 					for(String name : filenames){
+						System.out.println("Tokenizing: " + name);
 						Text text = new Text();
 						text.setTokens(Tokenizator.instance().Tokenize(HtmlReader.instance().readHtmlFile(name)));
 						set.getList().add(text);
 					}
 					System.out.println("Tokenizing done");
 					sets.add(set);
-					File result = new File(site.getPath() + "\\TexResult");
+					String resDir = site.getPath() + "\\TexResult";
+					File result = new File(resDir);
 					result.mkdir();
 					try{		
 						System.out.println("Launching Tex on text set of site: " + site.getName());
 						List<TextSet> resSets = Tex.instance().tex(sets, sets.get(0).getMaxMatchNumber(), 1);
 						System.out.println("writing results");
-						for(TextSet res : resSets){
-							for(int i = 0 ; i< res.getList().size() ; i++){
-								File file = new File((i + 1) + ".txt");
-								writeFile(file, res.getList().get(i));
-							}
-						}
+						File file = new File(resDir + "\\" + "Results.txt");
+						writeFile(file, resSets);
 					}
 					catch(Exception e){
 						System.out.println("unable to write file to filesystem");
@@ -81,18 +79,33 @@ public class Main {
 	           filenames.add(file.getPath());
 	        }
 	    }
-	}
+	}	
 	
-	
-	
-	private void writeFile(File file, Text text){
+	private void writeFile(File file, List<TextSet> texts){
 		boolean res = false;
 		try{
-			while(!res){
-				res = HtmlWriter.instance().writeHtmlFile(file, text.getTokens());
-			}
-			file.createNewFile();
+			for(TextSet ts : texts){
+				for(Text t : ts.getList()){
+					res = HtmlWriter.instance().writeHtmlFile(file, t.getTokens());
+					if(!res){
+						System.out.println("Something went wrong while writing text strings: ");
+						for(String s : t.getTokens()){
+							System.out.println(s);
+						}
+						System.out.println("Aborting writing...");
+						break;
+					}
+				}	
+				if(!res){
+					break;
+				}
+			}			
 		}
 		catch(Exception e){}
+	}
+		
+	public static void main(String[] args){
+		Main main = new Main();
+		main.doTex("C:\\Users\\Cerberus 2.0\\Desktop\\sss");
 	}
 }

@@ -22,11 +22,12 @@ public class HtmlWriter {
 		BufferedWriter br = null;
 		
 		try{
-			fr = new FileWriter(file);
+			fr = new FileWriter(file, true);
 			br = new BufferedWriter(fr);
 			
 			for(String s : texts){
 				br.write(s);
+				br.newLine();
 			}
 			//br.flush();
 		}

@@ -143,7 +143,7 @@ public class Tex {
 		while(i < text.getSize()){
 			int j = position;
 			while(j < pattern.getSize() && i < text.getSize()){
-				if(j < size + position && text.getToken(i).equals(pattern.getToken(j))){
+				if(text.getToken(i).equals(pattern.getToken(j))){
 					if(j == size + position - 1){
 						matches.add(i - (size - 1)); //indice del primo token di match
 					}
@@ -158,6 +158,32 @@ public class Tex {
 				}
 			}
 		}
+		
+		/* j < size + position && 
+		 
+		 
+		 //position => elemento inziale di shortest
+		  while(i < text.getSize()){
+			int j = position;
+			while(j < pattern.getSize() && i < text.getSize()){
+				if(text.getToken(i).equals(pattern.getToken(j))){
+					if(j == size + position - 1){
+						matches.add(i - (size - 1)); //indice del primo token di match
+					}
+					i++;
+					j++;
+				}
+				else if(j > position){
+					j = position;
+				}
+				else{
+					i++;
+				}
+			}
+		}
+		  
+		 */
+		
 		
 		/*while(i < text.getSize()){
 			if(j < size && text.getToken(i).equals(pattern.getToken(j))){

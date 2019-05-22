@@ -1,5 +1,6 @@
 package test;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,7 +15,7 @@ public class Test {
 	
 	public static void main(String[] args) {
 		
-		Text t1 = new Text();
+		/*Text t1 = new Text();
 		t1.setTokens(Tokenizator.instance().Tokenize("<html><head><title>Results</title></head><body>Catch Me<br /><b>Lisa Gardner</b><br /> $14.94<br /></body></html>"));
 		Text t2 = new Text();
 		t2.setTokens(Tokenizator.instance().Tokenize("<html><head><title>Results</title></head><body>Raylan<br /><b>Elmore Leonard</b><br /> $19.54<br />Wonderstruck<br /><b>Brian Selznick</b><br />$19.54<br /></body></html>"));
@@ -34,7 +35,20 @@ public class Test {
 			for(Text t : s.getList()){
 				System.out.println(t.toString());
 			}
+		}*/
+		
+		File file = testCreateEmptyFile("C:\\Users\\Cerberus 2.0\\Desktop\\TestCreateNewFile\\test.txt");
+	}
+	
+	public static File testCreateEmptyFile(String filename){
+		File file = new File(filename);
+		try{
+			file.createNewFile();
 		}
+		catch(IOException e){
+			System.out.println("unable to write file");
+		}
+		return file;	
 	}
 	
 	public static List<Integer> findMatch(String text, String pattern,  int dimension) {

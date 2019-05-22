@@ -29,7 +29,7 @@ public class TextSet {
 		Iterator<Text> it = this.textSet.iterator();
 		while(it.hasNext() && !variability){
 			Text current = it.next();
-			for(int i = this.textSet.indexOf(current) ; i < this.textSet.size() - 1 ; i++){
+			for(int i = 0 ; i < this.textSet.size() - 1 ; i++){
 				variability = !current.equals(this.textSet.get(i));
 			}
 			
