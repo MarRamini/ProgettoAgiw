@@ -5,6 +5,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 
 public class HtmlWriter {
@@ -49,6 +54,24 @@ public class HtmlWriter {
 			catch(IOException e){
 				return false;
 			}
+		}
+		
+		return true;
+	}
+	
+	public boolean writeHtmlFileTest(File file, List<String> texts){
+				
+		try{
+			Path filePath = Paths.get(file.getPath());
+			byte[] emptyFile = new byte[0];
+			Files.write(filePath, emptyFile, StandardOpenOption.APPEND);
+			Files.write(filePath, texts, Charset.forName("UTF-8"), StandardOpenOption.APPEND);
+		}
+		catch(FileNotFoundException e){
+			return false;
+		} 
+		catch (IOException e) {
+			return false;
 		}
 		
 		return true;

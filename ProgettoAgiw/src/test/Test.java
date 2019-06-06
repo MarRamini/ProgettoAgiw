@@ -6,6 +6,7 @@ import java.util.List;
 
 import model.Text;
 import model.TextSet;
+import tex.Main;
 import tex.Tex;
 import utils.HtmlReader;
 import utils.HtmlWriter;
@@ -36,8 +37,8 @@ public class Test {
 				System.out.println(t.toString());
 			}
 		}*/
-		
-		File file = testCreateEmptyFile("C:\\Users\\Cerberus 2.0\\Desktop\\TestCreateNewFile\\test.txt");
+		Main main = new Main();		
+		main.doTex("");	//directory di esecuzione
 	}
 	
 	public static File testCreateEmptyFile(String filename){

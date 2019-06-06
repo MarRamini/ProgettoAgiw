@@ -2,6 +2,7 @@ package tex;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +36,7 @@ public class Main {
 		File root = new File(folder); //root folder of TextSet
 		
 		for(File type : root.listFiles()){
-			System.out.println("Analizing folder " + type.getName());
+			System.out.println("Analizing folder " + type.getName() + " " + Calendar.getInstance().getTime().toString());
 			for(File site : type.listFiles()){
 				System.out.println("Analizing folder " + site.getName());
 				if(!site.getName().contains("desktop.ini")){
@@ -43,22 +44,22 @@ public class Main {
 					getFileNames(site, filenames);
 					System.out.println("Loaded " + filenames.size() + "files");
 					TextSet set = new TextSet();
-					System.out.println("Tokenizing files in directory: " + site.getName());
+					System.out.println("Tokenizing files in directory: " + site.getName() + " " + Calendar.getInstance().getTime().toString());
 					for(String name : filenames){
-						System.out.println("Tokenizing: " + name);
+						System.out.println("Tokenizing " + name);
 						Text text = new Text();
-						text.setTokens(Tokenizator.instance().Tokenize(HtmlReader.instance().readHtmlFile(name)));
+						text.setTokens(Tokenizator.instance().TokenizeOptimized(HtmlReader.instance().readHtmlFile(name)));
 						set.getList().add(text);
 					}
-					System.out.println("Tokenizing done");
+					System.out.println("Tokenizing done" + " " + Calendar.getInstance().getTime().toString());
 					sets.add(set);
 					String resDir = site.getPath() + "\\TexResult";
 					File result = new File(resDir);
 					result.mkdir();
 					try{		
-						System.out.println("Launching Tex on text set of site: " + site.getName());
+						System.out.println("Launching Tex on text set of site: " + site.getName() + " " + Calendar.getInstance().getTime().toString());
 						List<TextSet> resSets = Tex.instance().tex(sets, sets.get(0).getMaxMatchNumber(), 1);
-						System.out.println("writing results");
+						System.out.println("writing results" + " " + Calendar.getInstance().getTime().toString());
 						File file = new File(resDir + "\\" + "Results.txt");
 						writeFile(file, resSets);
 					}
@@ -83,23 +84,25 @@ public class Main {
 	
 	private void writeFile(File file, List<TextSet> texts){
 		boolean res = false;
+		
 		try{
+			List<Text> textsToWrite = new ArrayList<Text>();
 			for(TextSet ts : texts){
-				for(Text t : ts.getList()){
-					res = HtmlWriter.instance().writeHtmlFile(file, t.getTokens());
-					if(!res){
-						System.out.println("Something went wrong while writing text strings: ");
-						for(String s : t.getTokens()){
-							System.out.println(s);
-						}
-						System.out.println("Aborting writing...");
-						break;
-					}
-				}	
-				if(!res){
-					break;
-				}
-			}			
+				textsToWrite.addAll(ts.getList());
+			}
+			
+			List<String> toWrite = new ArrayList<String>();
+			
+			for(Text t : textsToWrite){
+				toWrite.addAll(t.getTokens());
+			}
+			
+			res = HtmlWriter.instance().writeHtmlFile(file, toWrite);
+			
+			if(!res){
+				System.out.println("Something went wrong while writing text");
+				System.out.println("Aborting writing...");
+			}		
 		}
 		catch(Exception e){}
 	}
