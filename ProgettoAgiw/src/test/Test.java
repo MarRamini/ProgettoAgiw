@@ -2,11 +2,16 @@ package test;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import model.Metrics;
 import model.Text;
 import model.TextSet;
 import tex.Main;
+import tex.MetricsCalculator;
 import tex.Tex;
 import utils.HtmlReader;
 import utils.HtmlWriter;
@@ -37,9 +42,27 @@ public class Test {
 				System.out.println(t.toString());
 			}
 		}*/
-		Main main = new Main();		
-		main.doTex("");	//directory di esecuzione
+		//Main main = new Main();		
+		//main.doTex("C:\\Users\\Cerberus 2.0\\Desktop\\alf-dataset");
+		//File file = testCreateEmptyFile("C:\\Users\\Cerberus 2.0\\Desktop\\TestCreateNewFile\\test.txt");
+		String datasetFolder = "C:\\Users\\Cerberus 2.0\\Desktop\\alf-dataset";
+		String resultFolder = "C:\\Users\\Cerberus 2.0\\Desktop\\TexResults";
+		Map<String, Metrics> res = MetricsCalculator.instance().getMetrics(datasetFolder, resultFolder);
+		
+		/*File metricsRes = new File("C:\\Users\\Cerberus 2.0\\Desktop\\metricsResults");
+		metricsRes.mkdir();
+		List<String> toWrite = new ArrayList<String>();
+		for(String s : res.keySet()){			
+			toWrite.add(s);
+			toWrite.add("precision: " + String.valueOf(res.get(s).getPrecision()));
+			toWrite.add("recall: " + String.valueOf(res.get(s).getRecall()));
+			toWrite.add("f-measure: " + String.valueOf(res.get(s).getF1Measure()));
+		}
+		
+		HtmlWriter.instance().writeHtmlFile(metricsRes, toWrite);*/
 	}
+	
+	
 	
 	public static File testCreateEmptyFile(String filename){
 		File file = new File(filename);
