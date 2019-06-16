@@ -3,10 +3,13 @@ package test;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import model.Metrics;
 import model.SiteMetricsData;
 import utils.HtmlReader;
 import utils.ResultsReader;
@@ -139,5 +142,87 @@ public class PartialTest {
 	           filenames.add(file.getPath());
 	        }
 	    }
-	}	
+	}
 }
+	/*
+	 Vecchia Logica
+	 Map<String, Metrics> result = new HashMap<String, Metrics>();
+		List<SiteMetricsData> metricsData = new ArrayList<SiteMetricsData>();
+		int relevantCases = 0;
+		int positiveCases = 0;
+		int totalExtractedCases = 0;
+		
+		System.out.println("Calculating total and positives extracted cases " + Calendar.getInstance().getTime().toString());
+		File resRoot = new File(resultsFolder);
+		File dataRoot = new File(datasetFolder);
+		for(File resType : resRoot.listFiles()){
+			System.out.println("Analizing " + resType.getName() + " folder");
+			for(File resSite : resType.listFiles()){
+				if(!resSite.getName().contains("desktop.ini")){					
+					System.out.println("Calculating total and positives cases in directory: " + resSite.getName() + " " + Calendar.getInstance().getTime().toString());
+					List<String> total = new ArrayList<String>();
+					for(File resFile : resSite.listFiles()){
+						total.addAll(getTotalCases(resFile));
+					}
+					
+					totalExtractedCases = total.size();
+					System.out.println("Valuating relevant cases " + Calendar.getInstance().getTime().toString());
+					List<String> positives = getRelevantCases(total);
+					positiveCases = positives.size();
+					System.out.println("found " + totalExtractedCases + " total extracted cases, " + positiveCases + " were relevant" + Calendar.getInstance().getTime().toString());
+					
+					System.out.println("Valuating original relevant cases " + Calendar.getInstance().getTime().toString());
+					for(File dataType : dataRoot.listFiles()){
+						System.out.println("Analizing " + dataType.getName() + " folder");
+						for(File dataSite : dataType.listFiles()){
+							if(dataSite.getName().equals(resSite.getName())){
+								System.out.println("Calculating positives cases in directory: " + dataSite.getName() + " " + Calendar.getInstance().getTime().toString());
+								List<String> totalCases = new ArrayList<String>();
+								for(File dataFile : dataSite.listFiles()){						
+									total.addAll(getTotalRelevantCases(dataFile));				
+								}
+								
+								relevantCases = totalCases.size();
+								System.out.println("found " + relevantCases + " total relevant cases " + Calendar.getInstance().getTime().toString());
+								
+					
+							}
+						}
+					}
+					
+					SiteMetricsData data = new SiteMetricsData();
+					data.setExtractedPositiveCases(positiveCases);
+					data.setExtractedTotalcases(totalExtractedCases);
+					data.setSiteName(resSite.getName());
+					data.setCategory(resType.getName());
+					metricsData.add(data);
+					System.out.println("found " + totalExtractedCases + " elements, " + positiveCases + " were relevant " + Calendar.getInstance().getTime().toString());
+				}
+			}
+		}
+		
+		for(SiteMetricsData el : metricsData){
+			String siteName = el.getSiteName();
+			double precision = getPrecision(el.getExtractedPositiveCases(), el.getExtractedTotalcases());
+			double recall = getRecall(el.getExtractedPositiveCases(), el.getTotalRelevantCases());
+			double f_measure = getF1Measure(precision, recall);
+			
+			File metricsRes = new File("C:\\Users\\Cerberus 2.0\\Desktop\\metricsResults");
+			metricsRes.mkdir();
+			
+			List<String> toWrite = new ArrayList<String>();
+			
+			toWrite.add(el.getCategory());
+			toWrite.add(el.getSiteName());
+			toWrite.add("precision: " + String.valueOf(precision));
+			toWrite.add("recall: " + String.valueOf(recall));
+			toWrite.add("f-measure: " + String.valueOf(f_measure));
+			
+			//Metrics metrics = new Metrics(precision, recall, f_measure);
+			//result.put(siteName, metrics);
+		}
+	 
+	 
+	 
+	 
+	 */

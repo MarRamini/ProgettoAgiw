@@ -47,19 +47,20 @@ public class Test {
 		//File file = testCreateEmptyFile("C:\\Users\\Cerberus 2.0\\Desktop\\TestCreateNewFile\\test.txt");
 		String datasetFolder = "C:\\Users\\Cerberus 2.0\\Desktop\\alf-dataset";
 		String resultFolder = "C:\\Users\\Cerberus 2.0\\Desktop\\TexResults";
-		Map<String, Metrics> res = MetricsCalculator.instance().getMetrics(datasetFolder, resultFolder);
+		List<Metrics> res = MetricsCalculator.instance().getMetrics(datasetFolder, resultFolder);
 		
-		/*File metricsRes = new File("C:\\Users\\Cerberus 2.0\\Desktop\\metricsResults");
+		File metricsRes = new File("C:\\Users\\Cerberus 2.0\\Desktop\\metricsResults");
 		metricsRes.mkdir();
 		List<String> toWrite = new ArrayList<String>();
-		for(String s : res.keySet()){			
-			toWrite.add(s);
-			toWrite.add("precision: " + String.valueOf(res.get(s).getPrecision()));
-			toWrite.add("recall: " + String.valueOf(res.get(s).getRecall()));
-			toWrite.add("f-measure: " + String.valueOf(res.get(s).getF1Measure()));
+		for(Metrics m : res){			
+			toWrite.add(m.getCategory());
+			toWrite.add(m.getSite());
+			toWrite.add("precision: " + String.valueOf(m.getPrecision()));
+			toWrite.add("recall: " + String.valueOf(m.getRecall()));
+			toWrite.add("f-measure: " + String.valueOf(m.getF1Measure()));
 		}
 		
-		HtmlWriter.instance().writeHtmlFile(metricsRes, toWrite);*/
+		HtmlWriter.instance().writeHtmlFile(metricsRes, toWrite);
 	}
 	
 	

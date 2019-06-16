@@ -4,7 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ResultsReader {
@@ -17,7 +17,7 @@ public class ResultsReader {
 	}
 	
 	public List<String> readResultFile(String filename){
-		List<String> result = new LinkedList<String>();
+		List<String> result = new ArrayList<String>();
 		FileReader fr = null;
 		BufferedReader br = null;
 		
